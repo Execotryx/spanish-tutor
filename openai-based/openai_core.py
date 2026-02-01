@@ -81,17 +81,30 @@ class OpenAICore(ABC, Generic[T]):
         """Protected, read-only access to the system prompt for subclasses."""
         return self.__system_prompt
 
-    def create_response(self, input_text: str, **kwargs: Any) -> T:
+    def create_response(
+        self,
+        input_text: str | None = None,
+        *,
+        messages: list[dict[str, Any]] | None = None,
+        **kwargs: Any,
+    ) -> T:
+        if input_text is None and messages is None:
+            raise ValueError("Either input_text or messages must be provided.")
+
         payload: dict[str, Any] = {
             "model": self._config.model_name,
-            "input": input_text,
-            "instructions": self._system_prompt,
         }
-        if self._previous_response_id is not None:
+        if messages is not None:
+            payload["input"] = messages
+            self.__previous_response_id = None
+        else:
+            payload["input"] = input_text
+            payload["instructions"] = self._system_prompt
+        if messages is None and self._previous_response_id is not None:
             payload["previous_response_id"] = self._previous_response_id
         payload.update(kwargs)
         response: Response = self._client.responses.create(**payload)
-        if response.id:
+        if messages is None and response.id:
             self.__previous_response_id = response.id
         return self.handle_response(response)
 
