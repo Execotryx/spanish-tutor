@@ -63,22 +63,22 @@ class OpenAICore(ABC, Generic[T]):
 
     @property
     def _config(self) -> OpenAIConfig:
-        """Read-only OpenAI configuration accessor for subclasses."""
+        """Protected, read-only access to the OpenAI configuration for subclasses."""
         return self.__config
 
     @property
     def _client(self) -> OpenAI:
-        """Read-only OpenAI client accessor for subclasses."""
+        """Protected, read-only access to the OpenAI client for subclasses."""
         return self.__client
 
     @property
     def _previous_response_id(self) -> str | None:
-        """Read-only previous response ID accessor for subclasses."""
+        """Protected, read-only access to the last response ID for subclasses."""
         return self.__previous_response_id
 
     @property
     def _system_prompt(self) -> str:
-        """Read-only system prompt accessor for subclasses."""
+        """Protected, read-only access to the system prompt for subclasses."""
         return self.__system_prompt
 
     def create_response(self, input_text: str, **kwargs: Any) -> T:
