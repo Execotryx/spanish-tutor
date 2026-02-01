@@ -50,10 +50,16 @@ class OpenAICore(ABC, Generic[T]):
     Subclasses implement response conversion via `handle_response()`.
     """
 
-    def __init__(self, config: OpenAIConfig, client: OpenAI | None = None) -> None:
+    def __init__(
+        self,
+        config: OpenAIConfig,
+        system_prompt: str,
+        client: OpenAI | None = None,
+    ) -> None:
         self.__config: OpenAIConfig = config
         self.__client: OpenAI = client or OpenAI(api_key=config.api_key)
         self.__previous_response_id: str | None = None
+        self.__system_prompt: str = system_prompt
 
     @property
     def _config(self) -> OpenAIConfig:
@@ -70,10 +76,16 @@ class OpenAICore(ABC, Generic[T]):
         """Read-only previous response ID accessor for subclasses."""
         return self.__previous_response_id
 
+    @property
+    def _system_prompt(self) -> str:
+        """Read-only system prompt accessor for subclasses."""
+        return self.__system_prompt
+
     def create_response(self, input_text: str, **kwargs: Any) -> T:
         payload: dict[str, Any] = {
             "model": self._config.model_name,
             "input": input_text,
+            "instructions": self._system_prompt,
         }
         if self._previous_response_id is not None:
             payload["previous_response_id"] = self._previous_response_id
